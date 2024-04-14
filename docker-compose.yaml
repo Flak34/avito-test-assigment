@@ -1,3 +1,6 @@
+networks:
+  net:
+    driver: bridge
 
 
 services:
@@ -11,12 +14,12 @@ services:
       POSTGRES_PASSWORD: 123
 
   banner-service:
-    volumes:
-      - ./config/config.yaml:/config/config.yaml
-    build:
-      ./
     depends_on:
       - postgres
+    volumes:
+      - ./config/container-config.yaml:/config/config.yaml
+    build:
+      ./
     environment:
       CONFIG_PATH: "./config/config.yaml"
     ports:

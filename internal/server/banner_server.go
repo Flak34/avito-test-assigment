@@ -52,14 +52,12 @@ func (server *BannerServer) GetByTagAndFeature(w http.ResponseWriter, req *http.
 
 	useLastRevision := useLastRevisionStr == "true"
 
-	//TODO проверка на админа
-	//fromAdmin := false
-
 	bannerContent, err := server.service.GetByTagAndFeature(req.Context(), tagID, featureID, useLastRevision)
 	if err != nil {
 		return err
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write([]byte(bannerContent))
 	if err != nil {
@@ -135,6 +133,7 @@ func (server *BannerServer) Create(w http.ResponseWriter, req *http.Request) err
 		return err
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(responseBytes)
 	return nil
@@ -209,7 +208,7 @@ func (server *BannerServer) ListBannersByTagOrFeature(w http.ResponseWriter, req
 	if err != nil {
 		return err
 	}
-
+	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(bytes)
 	if err != nil {
 		return err
@@ -272,6 +271,7 @@ func (server *BannerServer) GetBannerVersions(w http.ResponseWriter, req *http.R
 		return err
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(bytes)
 	if err != nil {
 		return err

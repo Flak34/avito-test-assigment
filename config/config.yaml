@@ -7,8 +7,7 @@ db:
 server:
   port : ":9000"
 authentication:
-#  auth-secret-key: "c2VjcmV0LXNlY3JldC1zZWNyZXQtc2VjcmV0"
-  auth-secret-key: "c2VjcmV0LWtleQ=="
+  auth-secret-key: "c2VjcmV0LXNlY3JldC1zZWNyZXQtc2VjcmV0"
   admin-creds:
     login: "admin"
     password: "$2a$10$yiEjjMbWmABy9xIqY2QDIOyynf1ESv0.UkpK01md8jwhEf3UD1E8i" # admin

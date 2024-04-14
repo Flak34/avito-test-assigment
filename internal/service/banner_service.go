@@ -48,7 +48,6 @@ type BannerService struct {
 	versionRepository  VersionRepository
 	transactionManager TransactionManager
 
-	//TODO здесь переделать кэш на интерфейс
 	bannerCache *expirable.LRU[string, string]
 }
 

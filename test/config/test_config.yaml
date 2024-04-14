@@ -1,0 +1,17 @@
+db:
+  host: "localhost"
+  port: 5437
+  user: "test"
+  password: "test"
+  dbname: "test"
+server:
+  port : ":9001"
+authentication:
+  #  auth-secret-key: "c2VjcmV0LXNlY3JldC1zZWNyZXQtc2VjcmV0"
+  auth-secret-key: "c2VjcmV0LWtleQ=="
+  admin-creds:
+    login: "admin"
+    password: "$2a$10$yiEjjMbWmABy9xIqY2QDIOyynf1ESv0.UkpK01md8jwhEf3UD1E8i" # admin
+  user-creds:
+    login: "user"
+    password: "$2a$10$K87d0ezJa/f7U.6VsDu3q.TzI8jd09Dk0nh4EDwx4toLY9nJwS0Ii" # user

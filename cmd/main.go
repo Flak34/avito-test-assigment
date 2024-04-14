@@ -20,10 +20,6 @@ import (
 	"syscall"
 )
 
-func generateDsn(db config.DB) string {
-	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", db.Host, db.Port, db.User, db.Password, db.DbName)
-}
-
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -50,8 +46,9 @@ func main() {
 	r := chi.NewRouter()
 	secret := cfg.Authentication.SecretKey
 
-	r.With(middleware.TokenAuth(secret, false)).
-		Get("/user_banner", server.Handle(bannerServer.GetByTagAndFeature))
+	//r.With(middleware.TokenAuth(secret, false)).
+	//	Get("/user_banner", server.Handle(bannerServer.GetByTagAndFeature))
+	r.Get("/user_banner", server.Handle(bannerServer.GetByTagAndFeature))
 
 	r.With(middleware.TokenAuth(secret, true)).
 		Delete("/banner/{id}", server.Handle(bannerServer.DeleteByID))
@@ -102,4 +99,8 @@ func main() {
 
 	wg.Wait()
 	fmt.Println("Сервис завершил свою работу")
+}
+
+func generateDsn(db config.DB) string {
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", db.Host, db.Port, db.User, db.Password, db.DbName)
 }

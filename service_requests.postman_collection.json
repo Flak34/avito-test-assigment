@@ -1,0 +1,287 @@
+{
+	"info": {
+		"_postman_id": "6c7d0e0c-dc96-4608-9b47-e91122415742",
+		"name": "Avito Test Assigment",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26161119"
+	},
+	"item": [
+		{
+			"name": "Get Banner By Tag And Feature",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxOTYyNjAsInJvbGUiOiJhZG1pbiJ9.M1YHOCm9lDsGuEyN9mRNGD2swxCzG4Dg_eei7Mxq5Lc",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:9000/user_banner?tag_id=1&feature_id=1&use_last_revision=true",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"user_banner"
+					],
+					"query": [
+						{
+							"key": "tag_id",
+							"value": "1"
+						},
+						{
+							"key": "feature_id",
+							"value": "1"
+						},
+						{
+							"key": "use_last_revision",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Banner",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxOTYyNjAsInJvbGUiOiJhZG1pbiJ9.M1YHOCm9lDsGuEyN9mRNGD2swxCzG4Dg_eei7Mxq5Lc",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"tag_ids\": [\r\n    10001\r\n  ],\r\n  \"feature_id\": 100000,\r\n  \"content\": {\r\n    \"title\": \"some_content\",\r\n    \"text\": \"some_text\",\r\n    \"url\": \"some_url\"\r\n  },\r\n  \"is_active\": false\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/banner/9",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"banner",
+						"9"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Banner By Id",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMyMDU4NjEsInJvbGUiOiJhZG1pbiJ9.WMsYIE93tmbXJi_1ia7hBs29HKm1oZDUlEx0Y87xTmg",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:9000/banner/1",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"banner",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Banner",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxOTgzMTMsInJvbGUiOiJhZG1pbiJ9._VuMKnYB2sGZk8ZGPEkvBDsGR31jyLHHvz7o8q_Wccg",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"tag_ids\": [\r\n    1\r\n  ],\r\n  \"feature_id\": 1,\r\n  \"content\": {\r\n    \"title\": \"some_content\",\r\n    \"text\": \"some_text\",\r\n    \"url\": \"some_url\"\r\n  },\r\n  \"is_active\": true\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/banner",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"banner"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "List Banners",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxOTgzMTMsInJvbGUiOiJhZG1pbiJ9._VuMKnYB2sGZk8ZGPEkvBDsGR31jyLHHvz7o8q_Wccg",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:9000/banner?offset=0&limit=3&tag_id=1&feature_id=1",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"banner"
+					],
+					"query": [
+						{
+							"key": "offset",
+							"value": "0"
+						},
+						{
+							"key": "limit",
+							"value": "3"
+						},
+						{
+							"key": "tag_id",
+							"value": "1"
+						},
+						{
+							"key": "feature_id",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"login\": \"admin\",\r\n    \"password\": \"admin\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:9000/login",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Banners By Tag Or Feature",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxOTgzMTMsInJvbGUiOiJhZG1pbiJ9._VuMKnYB2sGZk8ZGPEkvBDsGR31jyLHHvz7o8q_Wccg",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:9000/banner?feature_id=10000",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"banner"
+					],
+					"query": [
+						{
+							"key": "feature_id",
+							"value": "10000"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Banner Versions",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTMxOTgzMTMsInJvbGUiOiJhZG1pbiJ9._VuMKnYB2sGZk8ZGPEkvBDsGR31jyLHHvz7o8q_Wccg",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:9000/banner/9/version",
+					"host": [
+						"localhost"
+					],
+					"port": "9000",
+					"path": [
+						"banner",
+						"9",
+						"version"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

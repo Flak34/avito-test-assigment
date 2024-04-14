@@ -90,5 +90,6 @@ func (s *AuthServer) Login(w http.ResponseWriter, r *http.Request) {
 
 	respBytes, _ := json.Marshal(&response)
 	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
 	w.Write(respBytes)
 }

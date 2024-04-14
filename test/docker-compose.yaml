@@ -1,0 +1,15 @@
+networks:
+  test-net:
+    driver: bridge
+
+services:
+  test-postgres:
+    image: postgres
+    volumes:
+      - ../internal/db/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+      - "5437:5432"
