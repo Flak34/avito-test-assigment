@@ -152,8 +152,9 @@ func (r *BannerRepository) ListByTag(ctx context.Context, tagID int64, offset in
 
 	var banners []*shema.Banner
 	err := pgxscan.Select(ctx,
-		querier, &banners, `SELECT id, is_active, content, created_at, updated_at FROM banner WHERE id IN 
-                           (SELECT banner_id FROM banner_feature_tag WHERE tag_id = $1 LIMIT $2 OFFSET $3)`,
+		querier, &banners, `SELECT id, is_active, content, created_at, updated_at FROM banner JOIN 
+                           (SELECT banner_id FROM banner_feature_tag WHERE tag_id = $1) t 
+                            ON banner_id = id LIMIT $2 OFFSET $3`,
 		tagID, limit, offset)
 	if err != nil {
 		return nil, err
@@ -166,8 +167,9 @@ func (r *BannerRepository) ListByFeature(ctx context.Context, featureID int64, o
 
 	var banners []*shema.Banner
 	err := pgxscan.Select(ctx, querier, &banners,
-		`SELECT id, is_active, content, created_at, updated_at FROM banner WHERE id IN 
-                           (SELECT DISTINCT banner_id FROM banner_feature_tag WHERE feature_id = $1 LIMIT $2 OFFSET $3)`,
+		`SELECT id, is_active, content, created_at, updated_at FROM banner JOIN 
+                (SELECT DISTINCT banner_id FROM banner_feature_tag WHERE feature_id = $1) t 
+                ON banner_id = id LIMIT $2 OFFSET $3`,
 		featureID, limit, offset)
 	if err != nil {
 		return nil, err

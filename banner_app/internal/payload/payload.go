@@ -23,11 +23,12 @@ type UpdateBannerRequest struct {
 
 func (r *UpdateBannerRequest) BuildBanner() *model.Banner {
 	content, _ := json.Marshal(&r.Content)
+	c := json.RawMessage(content)
 	return &model.Banner{
 		ID:        r.ID,
 		FeatureID: r.FeatureID,
 		TagIDs:    r.TagIDs,
-		Content:   string(content),
+		Content:   &c,
 		IsActive:  r.IsActive,
 	}
 }
@@ -41,10 +42,11 @@ type CreateBannerRequest struct {
 
 func (r *CreateBannerRequest) BuildBanner() *model.Banner {
 	content, _ := json.Marshal(&r.Content)
+	c := json.RawMessage(content)
 	return &model.Banner{
 		FeatureID: r.FeatureID,
 		TagIDs:    r.TagIDs,
-		Content:   string(content),
+		Content:   &c,
 		IsActive:  r.IsActive,
 	}
 }

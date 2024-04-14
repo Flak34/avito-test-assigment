@@ -5,6 +5,7 @@ import (
 	"avito-test-assigment/banner_app/internal/repository"
 	"avito-test-assigment/banner_app/internal/repository/shema"
 	"context"
+	"encoding/json"
 	"github.com/hashicorp/golang-lru/v2/expirable"
 	"strconv"
 	"time"
@@ -235,7 +236,7 @@ func (s *BannerService) Update(ctx context.Context, banner model.Banner) error {
 func buildShemaBanner(banner *model.Banner) *shema.Banner {
 	return &shema.Banner{
 		ID:        banner.ID,
-		Content:   banner.Content,
+		Content:   string(*banner.Content),
 		IsActive:  banner.IsActive,
 		CreatedAt: banner.CreatedAt,
 		UpdatedAt: banner.UpdatedAt,
@@ -243,9 +244,10 @@ func buildShemaBanner(banner *model.Banner) *shema.Banner {
 }
 
 func buildModelBanner(banner *shema.Banner) *model.Banner {
+	c := json.RawMessage(banner.Content)
 	return &model.Banner{
 		ID:        banner.ID,
-		Content:   banner.Content,
+		Content:   &c,
 		IsActive:  banner.IsActive,
 		CreatedAt: banner.CreatedAt,
 		UpdatedAt: banner.UpdatedAt,
