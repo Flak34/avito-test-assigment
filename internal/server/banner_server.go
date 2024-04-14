@@ -1,9 +1,9 @@
 package server
 
 import (
-	"avito-test-assigment/banner_app/internal/model"
-	"avito-test-assigment/banner_app/internal/payload"
-	"avito-test-assigment/banner_app/internal/service"
+	"avito-test-assigment/internal/model"
+	"avito-test-assigment/internal/payload"
+	"avito-test-assigment/internal/service"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,7 +20,7 @@ type BannerService interface {
 	Create(ctx context.Context, banner model.Banner) (int64, error)
 	ListBannersByTag(ctx context.Context, tagID int64, offset int, limit int) ([]model.Banner, error)
 	ListBannersByFeature(ctx context.Context, featureID int64, offset int, limit int) ([]model.Banner, error)
-	////ListBanners(ctx context.Context, offset int, limit int) ([]model.Banner, error)
+	ListBanners(ctx context.Context, offset int, limit int) ([]model.Banner, error)
 	GetByTagAndFeatureAdmin(ctx context.Context, tagID int64, featureID int64) (model.Banner, error)
 }
 
@@ -192,7 +192,10 @@ func (server *BannerServer) ListBannersByTagOrFeature(w http.ResponseWriter, req
 			return err
 		}
 	} else {
-		//TODO дописать методы получения баннеров без фильтра
+		result, err = server.service.ListBanners(req.Context(), offset, limit)
+		if err != nil {
+			return err
+		}
 	}
 
 	bytes, err := json.Marshal(&result)

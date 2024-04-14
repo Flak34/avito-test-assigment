@@ -1,9 +1,9 @@
 package service
 
 import (
-	"avito-test-assigment/banner_app/internal/model"
-	"avito-test-assigment/banner_app/internal/repository"
-	"avito-test-assigment/banner_app/internal/repository/shema"
+	"avito-test-assigment/internal/model"
+	"avito-test-assigment/internal/repository"
+	"avito-test-assigment/internal/repository/shema"
 	"context"
 	"encoding/json"
 	"github.com/hashicorp/golang-lru/v2/expirable"
@@ -11,18 +11,24 @@ import (
 	"time"
 )
 
+type TagRepository interface {
+	AddTag(ctx context.Context, bannerID int64, tagID int64, featureID int64) error
+	ListTags(ctx context.Context, bannerID int64) ([]*int64, error)
+	DeleteTags(ctx context.Context, bannerID int64) error
+}
+
 type BannerRepository interface {
 	GetByTagAndFeature(ctx context.Context, tagID int64, featureID int64) (*shema.Banner, error)
 	GetById(ctx context.Context, bannerID int64) (*shema.Banner, error)
 	DeleteByID(ctx context.Context, bannerID int64) error
 	Insert(ctx context.Context, banner shema.Banner) (int64, error)
 	Update(ctx context.Context, banner shema.Banner) error
-	AddTag(ctx context.Context, bannerID int64, tagID int64, featureID int64) error
-	ListTags(ctx context.Context, bannerID int64) ([]*int64, error)
-	DeleteTags(ctx context.Context, bannerID int64) error
 	GetFeature(ctx context.Context, bannerID int64) (int64, error)
 	ListByTag(ctx context.Context, tagID int64, offset int, limit int) ([]*shema.Banner, error)
 	ListByFeature(ctx context.Context, featureID int64, offset int, limit int) ([]*shema.Banner, error)
+	List(ctx context.Context, offset int, limit int) ([]*shema.Banner, error)
+	DeleteByTag(ctx context.Context, tagID int64, limit int) error
+	DeleteByFeature(ctx context.Context, featureID int64, limit int) error
 }
 
 type TransactionManager interface {
@@ -32,16 +38,18 @@ type TransactionManager interface {
 
 type BannerService struct {
 	bannerRepository   BannerRepository
+	tagRepository      TagRepository
 	transactionManager TransactionManager
 
 	//TODO здесь переделать кэш на интерфейс
 	bannerCache *expirable.LRU[string, string]
 }
 
-func NewBannerService(bannerRepository BannerRepository, manager TransactionManager) *BannerService {
+func NewBannerService(bannerRepository BannerRepository, manager TransactionManager, tagRepository TagRepository) *BannerService {
 	return &BannerService{
 		transactionManager: manager,
 		bannerRepository:   bannerRepository,
+		tagRepository:      tagRepository,
 		bannerCache:        expirable.NewLRU[string, string](30000, nil, time.Minute*5),
 	}
 }
@@ -57,7 +65,7 @@ func (s *BannerService) Create(ctx context.Context, banner model.Banner) (int64,
 		}
 
 		for _, tagID := range banner.TagIDs {
-			err := s.bannerRepository.AddTag(ctxTX, id, banner.FeatureID, *tagID)
+			err := s.tagRepository.AddTag(ctxTX, id, banner.FeatureID, *tagID)
 			if err != nil {
 				return err
 			}
@@ -111,7 +119,7 @@ func (s *BannerService) GetByTagAndFeatureAdmin(ctx context.Context, tagID int64
 			return err
 		}
 
-		tags, err := s.bannerRepository.ListTags(ctxTX, banner.ID)
+		tags, err := s.tagRepository.ListTags(ctxTX, banner.ID)
 		if err != nil {
 			return err
 		}
@@ -146,7 +154,40 @@ func (s *BannerService) ListBannersByTag(ctx context.Context, tagID int64, offse
 
 		for _, b := range banners {
 			modelBanner := buildModelBanner(b)
-			tags, err := s.bannerRepository.ListTags(ctxTX, b.ID)
+			tags, err := s.tagRepository.ListTags(ctxTX, b.ID)
+			if err != nil {
+				return err
+			}
+			feature, err := s.bannerRepository.GetFeature(ctxTX, b.ID)
+			if err != nil {
+				return err
+			}
+			modelBanner.TagIDs = tags
+			modelBanner.FeatureID = feature
+			result = append(result, *modelBanner)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *BannerService) ListBanners(ctx context.Context, offset int, limit int) ([]model.Banner, error) {
+
+	var result []model.Banner
+	err := s.transactionManager.RunReadCommitted(ctx, func(ctxTX context.Context) error {
+		banners, err := s.bannerRepository.List(ctxTX, offset, limit)
+		if err != nil {
+			return err
+		}
+
+		for _, b := range banners {
+			modelBanner := buildModelBanner(b)
+			tags, err := s.tagRepository.ListTags(ctxTX, b.ID)
 			if err != nil {
 				return err
 			}
@@ -178,7 +219,7 @@ func (s *BannerService) ListBannersByFeature(ctx context.Context, featureID int6
 
 		for _, b := range banners {
 			modelBanner := buildModelBanner(b)
-			tags, err := s.bannerRepository.ListTags(ctxTX, b.ID)
+			tags, err := s.tagRepository.ListTags(ctxTX, b.ID)
 			if err != nil {
 				return err
 			}
@@ -200,25 +241,21 @@ func (s *BannerService) ListBannersByFeature(ctx context.Context, featureID int6
 	return result, nil
 }
 
-//func (s *BannerService) ListBanners(ctx context.Context, offset int, limit int) ([]model.Banner, error) {
-//
-//}
-
 func (s *BannerService) Update(ctx context.Context, banner model.Banner) error {
-	//TODO в этом методе доделать добавление версии баннера
+	//TODO в этом методе доделать добавление версии баннера в таблицу версий
 	err := s.transactionManager.RunReadCommitted(ctx, func(ctxTX context.Context) error {
 		err := s.bannerRepository.Update(ctxTX, *buildShemaBanner(&banner))
 		if err != nil {
 			return err
 		}
 
-		err = s.bannerRepository.DeleteTags(ctxTX, banner.ID)
+		err = s.tagRepository.DeleteTags(ctxTX, banner.ID)
 		if err != nil {
 			return err
 		}
 
 		for _, tag := range banner.TagIDs {
-			err := s.bannerRepository.AddTag(ctxTX, banner.ID, *tag, banner.FeatureID)
+			err := s.tagRepository.AddTag(ctxTX, banner.ID, *tag, banner.FeatureID)
 			if err != nil {
 				return err
 			}
@@ -229,6 +266,34 @@ func (s *BannerService) Update(ctx context.Context, banner model.Banner) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (s *BannerService) DeleteByTag(ctx context.Context, tagID int64) error {
+
+	go func() {
+		for {
+			err := s.bannerRepository.DeleteByTag(ctx, tagID, 10000)
+			if err != nil {
+				return
+			}
+		}
+	}()
+
+	return nil
+}
+
+func (s *BannerService) DeleteByFeature(ctx context.Context, featureID int64) error {
+
+	go func() {
+		for {
+			err := s.bannerRepository.DeleteByFeature(ctx, featureID, 10000)
+			if err != nil {
+				return
+			}
+		}
+	}()
 
 	return nil
 }

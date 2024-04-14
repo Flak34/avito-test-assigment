@@ -1,9 +1,9 @@
 package server
 
 import (
-	"avito-test-assigment/banner_app/internal/payload"
-	"avito-test-assigment/banner_app/internal/repository"
-	"avito-test-assigment/banner_app/internal/service"
+	"avito-test-assigment/internal/payload"
+	"avito-test-assigment/internal/repository"
+	"avito-test-assigment/internal/service"
 	"encoding/json"
 	"errors"
 	"net/http"

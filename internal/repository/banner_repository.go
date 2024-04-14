@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"avito-test-assigment/banner_app/internal/repository/shema"
-	"avito-test-assigment/banner_app/internal/repository/transaction_manager"
+	"avito-test-assigment/internal/repository/shema"
+	"avito-test-assigment/internal/repository/transaction_manager"
 	"context"
 	"errors"
 	"github.com/georgysavva/scany/pgxscan"
@@ -96,45 +96,6 @@ func (r *BannerRepository) Update(ctx context.Context, banner shema.Banner) erro
 	return nil
 }
 
-func (r *BannerRepository) AddTag(ctx context.Context, bannerID int64, tagID int64, featureID int64) error {
-	querier := r.queryEngineProvider.GetQueryEngine(ctx)
-
-	_, err := querier.Exec(ctx,
-		"INSERT INTO banner_feature_tag(banner_id, tag_id, feature_id) VALUES ($1, $2, $3)",
-		bannerID, tagID, featureID)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *BannerRepository) ListTags(ctx context.Context, bannerID int64) ([]*int64, error) {
-	querier := r.queryEngineProvider.GetQueryEngine(ctx)
-
-	var tags []*int64
-	err := pgxscan.Select(ctx,
-		querier, &tags, "SELECT tag_id FROM banner_feature_tag WHERE banner_id = $1", bannerID)
-	if err != nil {
-		return nil, err
-	}
-	return tags, nil
-}
-
-func (r *BannerRepository) DeleteTags(ctx context.Context, bannerID int64) error {
-	querier := r.queryEngineProvider.GetQueryEngine(ctx)
-
-	_, err := querier.Exec(ctx, "DELETE FROM banner_feature_tag WHERE banner_id = $1", bannerID)
-	if err != nil {
-		return err
-	}
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (r *BannerRepository) GetFeature(ctx context.Context, bannerID int64) (int64, error) {
 	querier := r.queryEngineProvider.GetQueryEngine(ctx)
 
@@ -175,4 +136,52 @@ func (r *BannerRepository) ListByFeature(ctx context.Context, featureID int64, o
 		return nil, err
 	}
 	return banners, nil
+}
+
+func (r *BannerRepository) List(ctx context.Context, offset int, limit int) ([]*shema.Banner, error) {
+	querier := r.queryEngineProvider.GetQueryEngine(ctx)
+
+	var banners []*shema.Banner
+	err := pgxscan.Select(ctx, querier, &banners,
+		`SELECT id, is_active, content, created_at, updated_at FROM banner LIMIT $1 OFFSET $2`,
+		limit, offset)
+
+	if err != nil {
+		return nil, err
+	}
+	return banners, nil
+}
+
+func (r *BannerRepository) DeleteByTag(ctx context.Context, tagID int64, limit int) error {
+	querier := r.queryEngineProvider.GetQueryEngine(ctx)
+
+	comTag, err := querier.Exec(ctx, `DELETE FROM banner WHERE id IN 
+                         (SELECT banner_id FROM banner_feature_tag WHERE tag_id = $1 LIMIT $2)`, tagID, limit)
+
+	if err != nil {
+		return err
+	}
+
+	if comTag.RowsAffected() == 0 {
+		return ErrObjectNotFound
+	}
+
+	return nil
+}
+
+func (r *BannerRepository) DeleteByFeature(ctx context.Context, featureID int64, limit int) error {
+	querier := r.queryEngineProvider.GetQueryEngine(ctx)
+
+	comTag, err := querier.Exec(ctx, `DELETE FROM banner WHERE id IN 
+                         (SELECT DISTINCT banner_id FROM banner_feature_tag WHERE feature_id = $1 LIMIT $2)`, featureID, limit)
+
+	if err != nil {
+		return err
+	}
+
+	if comTag.RowsAffected() == 0 {
+		return ErrObjectNotFound
+	}
+
+	return nil
 }

@@ -1,9 +1,18 @@
 package payload
 
 import (
-	"avito-test-assigment/banner_app/internal/model"
+	"avito-test-assigment/internal/model"
 	"encoding/json"
 )
+
+type LoginRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
+}
 
 type ErrorResponse struct {
 	Error string `json:"error"`

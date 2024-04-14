@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	DB         `yaml:"db"`
-	HTTPServer `yaml:"server"`
+	DB             `yaml:"db"`
+	HTTPServer     `yaml:"server"`
+	Authentication Auth `yaml:"authentication"`
 }
 
 type DB struct {
@@ -21,10 +22,18 @@ type DB struct {
 }
 
 type HTTPServer struct {
-	InsecurePort string `yaml:"insecurePort"`
-	SecurePort   string `yaml:"securePort"`
-	Username     string `yaml:"username"`
-	Password     string `yaml:"password"`
+	Port string `yaml:"port"`
+}
+
+type Auth struct {
+	AdminCreds Credentials `yaml:"admin-creds"`
+	UserCreds  Credentials `yaml:"user-creds"`
+	SecretKey  string      `yaml:"secret-key"`
+}
+
+type Credentials struct {
+	Login    string `yaml:"login"`
+	Password string `yaml:"password"`
 }
 
 func LoadConfig() (*Config, error) {

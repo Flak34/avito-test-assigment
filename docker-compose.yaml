@@ -1,0 +1,23 @@
+
+
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - ./internal/db/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_DB: test_avito
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+
+  banner-service:
+    volumes:
+      - ./config/config.yaml:/config/config.yaml
+    build:
+      ./
+    depends_on:
+      - postgres
+    environment:
+      CONFIG_PATH: "./config/config.yaml"
+    ports:
+      - "9000:9000"
