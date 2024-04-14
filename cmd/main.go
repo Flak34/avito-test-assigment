@@ -40,14 +40,16 @@ func main() {
 	tm := transaction_manager.NewTransactionManager(pool)
 	bannerRepository := repository.NewBannerRepository(tm)
 	tagRepository := repository.NewTagRepository(tm)
+	versionRepository := repository.NewVersionRepository(tm)
 
-	service := service2.NewBannerService(bannerRepository, tm, tagRepository)
+	service := service2.NewBannerService(bannerRepository, tm, tagRepository, versionRepository)
 	bannerServer := server.NewBannerServer(service)
 
 	authServer := server.NewAuthServer(cfg.Authentication)
 
 	r := chi.NewRouter()
 	secret := cfg.Authentication.SecretKey
+
 	r.With(middleware.TokenAuth(secret, false)).
 		Get("/user_banner", server.Handle(bannerServer.GetByTagAndFeature))
 
@@ -65,8 +67,11 @@ func main() {
 
 	r.Post("/login", authServer.Login)
 
-	//r.Get("/banner/{id}", )
-	//r.Delete("/banner", )
+	r.With(middleware.TokenAuth(secret, true)).
+		Delete("/banner", server.Handle(bannerServer.DeleteByTagOrFeature))
+
+	r.With(middleware.TokenAuth(secret, true)).
+		Get("/banner/{id}/version", server.Handle(bannerServer.GetBannerVersions))
 
 	//реализация graceful shutdown для сервера
 	wg := sync.WaitGroup{}

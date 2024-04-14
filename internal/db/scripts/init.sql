@@ -18,6 +18,7 @@ CREATE INDEX banner_feature_tag_feature_id_idx on banner_feature_tag(feature_id)
 
 
 CREATE TABLE banner_version (
+    id BIGSERIAL PRIMARY KEY,
     banner_id BIGINT REFERENCES banner(id) ON DELETE CASCADE NOT NULL,
     banner JSONB NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE

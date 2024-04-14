@@ -15,7 +15,9 @@ type Banner struct {
 	UpdatedAt *time.Time       `json:"updated_at"`
 }
 
-type UserBanner struct {
-	Content  string
-	IsActive bool
+type BannerVersion struct {
+	ID        int64            `json:"id"`
+	Banner    *json.RawMessage `json:"banner"`
+	BannerID  int64            `json:"banner_id"`
+	CreatedAt time.Time        `json:"created_at"`
 }

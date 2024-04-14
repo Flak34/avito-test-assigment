@@ -11,6 +11,12 @@ import (
 	"time"
 )
 
+type VersionRepository interface {
+	AddVersion(ctx context.Context, bannerID int64, banner string) error
+	RemoveOldVersions(ctx context.Context, bannerID int64, countOfLeftVersions int) error
+	GetBannerVersions(ctx context.Context, bannerID int64) ([]*shema.BannerVersion, error)
+}
+
 type TagRepository interface {
 	AddTag(ctx context.Context, bannerID int64, tagID int64, featureID int64) error
 	ListTags(ctx context.Context, bannerID int64) ([]*int64, error)
@@ -39,17 +45,20 @@ type TransactionManager interface {
 type BannerService struct {
 	bannerRepository   BannerRepository
 	tagRepository      TagRepository
+	versionRepository  VersionRepository
 	transactionManager TransactionManager
 
 	//TODO здесь переделать кэш на интерфейс
 	bannerCache *expirable.LRU[string, string]
 }
 
-func NewBannerService(bannerRepository BannerRepository, manager TransactionManager, tagRepository TagRepository) *BannerService {
+func NewBannerService(bannerRepository BannerRepository, manager TransactionManager,
+	tagRepository TagRepository, versionRepository VersionRepository) *BannerService {
 	return &BannerService{
 		transactionManager: manager,
 		bannerRepository:   bannerRepository,
 		tagRepository:      tagRepository,
+		versionRepository:  versionRepository,
 		bannerCache:        expirable.NewLRU[string, string](30000, nil, time.Minute*5),
 	}
 }
@@ -65,7 +74,7 @@ func (s *BannerService) Create(ctx context.Context, banner model.Banner) (int64,
 		}
 
 		for _, tagID := range banner.TagIDs {
-			err := s.tagRepository.AddTag(ctxTX, id, banner.FeatureID, *tagID)
+			err = s.tagRepository.AddTag(ctxTX, id, *tagID, banner.FeatureID)
 			if err != nil {
 				return err
 			}
@@ -242,9 +251,22 @@ func (s *BannerService) ListBannersByFeature(ctx context.Context, featureID int6
 }
 
 func (s *BannerService) Update(ctx context.Context, banner model.Banner) error {
-	//TODO в этом методе доделать добавление версии баннера в таблицу версий
 	err := s.transactionManager.RunReadCommitted(ctx, func(ctxTX context.Context) error {
-		err := s.bannerRepository.Update(ctxTX, *buildShemaBanner(&banner))
+		oldBanner, err := s.bannerRepository.GetById(ctxTX, banner.ID)
+		if err != nil {
+			return err
+		}
+
+		err = s.versionRepository.AddVersion(ctxTX, banner.ID, oldBanner.Content)
+		if err != nil {
+			return err
+		}
+		err = s.versionRepository.RemoveOldVersions(ctxTX, banner.ID, 3)
+		if err != nil {
+			return err
+		}
+
+		err = s.bannerRepository.Update(ctxTX, *buildShemaBanner(&banner))
 		if err != nil {
 			return err
 		}
@@ -255,7 +277,7 @@ func (s *BannerService) Update(ctx context.Context, banner model.Banner) error {
 		}
 
 		for _, tag := range banner.TagIDs {
-			err := s.tagRepository.AddTag(ctxTX, banner.ID, *tag, banner.FeatureID)
+			err = s.tagRepository.AddTag(ctxTX, banner.ID, *tag, banner.FeatureID)
 			if err != nil {
 				return err
 			}
@@ -298,6 +320,21 @@ func (s *BannerService) DeleteByFeature(ctx context.Context, featureID int64) er
 	return nil
 }
 
+func (s *BannerService) GetBannerVersions(ctx context.Context, bannerID int64) ([]model.BannerVersion, error) {
+
+	versions, err := s.versionRepository.GetBannerVersions(ctx, bannerID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.BannerVersion, 0)
+	for _, v := range versions {
+		result = append(result, *buildModelBannerVersion(v))
+	}
+
+	return result, nil
+}
+
 func buildShemaBanner(banner *model.Banner) *shema.Banner {
 	return &shema.Banner{
 		ID:        banner.ID,
@@ -316,5 +353,15 @@ func buildModelBanner(banner *shema.Banner) *model.Banner {
 		IsActive:  banner.IsActive,
 		CreatedAt: banner.CreatedAt,
 		UpdatedAt: banner.UpdatedAt,
+	}
+}
+
+func buildModelBannerVersion(bannerVersion *shema.BannerVersion) *model.BannerVersion {
+	c := json.RawMessage(bannerVersion.Banner)
+	return &model.BannerVersion{
+		ID:        bannerVersion.ID,
+		Banner:    &c,
+		BannerID:  bannerVersion.BannerID,
+		CreatedAt: bannerVersion.CreatedAt,
 	}
 }
