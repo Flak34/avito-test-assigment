@@ -73,7 +73,7 @@ func Test_GetByFeatureAndTag(t *testing.T) {
 		c := json.RawMessage("{\"name\":\"some_name\"}")
 		id, err := service.Create(context.TODO(), model.Banner{
 			Content:   &c,
-			IsActive:  false,
+			IsActive:  true,
 			TagIDs:    []*int64{tagID},
 			FeatureID: 1,
 		})
